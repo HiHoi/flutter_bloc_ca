@@ -1,14 +1,16 @@
 import 'package:bloc_clean/core/error/exceptions.dart';
+import 'package:bloc_clean/features/auth/data/models/user_model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 abstract interface class AuthRemoteDateSource {
-  Future<String> signUpWithEmailPassword({
+  Session? get currentUserSession;
+  Future<UserModel> signUpWithEmailPassword({
     required String name,
     required String email,
     required String password,
   });
 
-  Future<String> loginWithEmailPassword({
+  Future<UserModel> loginWithEmailPassword({
     required String email,
     required String password,
   });
@@ -19,16 +21,30 @@ class AuthRemoteDateSourceImpl implements AuthRemoteDateSource {
   AuthRemoteDateSourceImpl({required this.supabaseClient});
 
   @override
-  Future<String> loginWithEmailPassword({
+  Session? get currentUserSession => supabaseClient.auth.currentSession;
+
+  @override
+  Future<UserModel> loginWithEmailPassword({
     required String email,
     required String password,
-  }) {
-    // TODO: implement loginWithEmailPassword
-    throw UnimplementedError();
+  }) async {
+    try {
+      final response = await supabaseClient.auth.signInWithPassword(
+        email: email,
+        password: password,
+      );
+
+      if (response.user == null) {
+        throw const ServerException('User is null');
+      }
+      return UserModel.fromJson(response.user!.toJson());
+    } catch (e) {
+      throw ServerException('Failed to login: ${e.toString()}');
+    }
   }
 
   @override
-  Future<String> signUpWithEmailPassword({
+  Future<UserModel> signUpWithEmailPassword({
     required String name,
     required String email,
     required String password,
@@ -43,7 +59,7 @@ class AuthRemoteDateSourceImpl implements AuthRemoteDateSource {
       if (response.user != null) {
         throw const ServerException('User is null');
       }
-      return response.user!.id;
+      return UserModel.fromJson(response.user!.toJson());
     } catch (e) {
       throw ServerException('Failed to sign up: ${e.toString()}');
     }
