@@ -14,6 +14,8 @@ abstract interface class AuthRemoteDateSource {
     required String email,
     required String password,
   });
+
+  Future<UserModel?> getCurrentUserData();
 }
 
 class AuthRemoteDateSourceImpl implements AuthRemoteDateSource {
@@ -62,6 +64,25 @@ class AuthRemoteDateSourceImpl implements AuthRemoteDateSource {
       return UserModel.fromJson(response.user!.toJson());
     } catch (e) {
       throw ServerException('Failed to sign up: ${e.toString()}');
+    }
+  }
+
+  @override
+  Future<UserModel?> getCurrentUserData() async {
+    try {
+      if (currentUserSession == null) {
+        return null;
+      }
+      final userData = await supabaseClient
+          .from('profiles')
+          .select()
+          .eq('id', currentUserSession!.user.id);
+
+      return UserModel.fromJson(
+        userData.first,
+      ).copyWith(email: currentUserSession!.user.email);
+    } catch (e) {
+      throw ServerException(e.toString());
     }
   }
 }

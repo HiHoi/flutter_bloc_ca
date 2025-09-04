@@ -1,6 +1,6 @@
 import 'package:bloc_clean/core/error/failures.dart';
 import 'package:bloc_clean/core/usecase/usecase.dart';
-import 'package:bloc_clean/features/auth/domain/entities/user.dart';
+import 'package:bloc_clean/core/common/entities/user.dart';
 import 'package:bloc_clean/features/auth/domain/repository/auth_repository.dart';
 import 'package:fpdart/fpdart.dart';
 

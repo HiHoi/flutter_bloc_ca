@@ -1,7 +1,7 @@
 import 'package:bloc_clean/core/error/exceptions.dart';
 import 'package:bloc_clean/core/error/failures.dart';
 import 'package:bloc_clean/features/auth/data/datasources/auth_remote_date_source.dart';
-import 'package:bloc_clean/features/auth/domain/entities/user.dart';
+import 'package:bloc_clean/core/common/entities/user.dart';
 import 'package:bloc_clean/features/auth/domain/repository/auth_repository.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as sb;
@@ -9,6 +9,19 @@ import 'package:supabase_flutter/supabase_flutter.dart' as sb;
 class AuthRepositoryImpl implements AuthRepository {
   final AuthRemoteDateSource remoteDateSource;
   AuthRepositoryImpl({required this.remoteDateSource});
+
+  @override
+  Future<Either<Failure, User>> currentUser() async {
+    try {
+      final user = await remoteDateSource.getCurrentUserData();
+      if (user == null) {
+        return left(Failure('No user logged in'));
+      }
+      return right(user);
+    } on ServerException catch (e) {
+      return left(Failure(e.message));
+    }
+  }
 
   @override
   Future<Either<Failure, User>> loginWithEmailPassword({
